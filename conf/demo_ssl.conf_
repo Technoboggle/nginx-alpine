@@ -1,0 +1,108 @@
+
+server {
+   listen       443;
+   server_name  localhost;
+   server_name  augustine.technoboggle.net;
+
+   security_headers on;
+   hide_server_tokens on;
+   server_tokens off;
+
+
+
+   include /etc/letsencrypt/options-ssl-nginx.conf;
+   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+   ssl_certificate /etc/letsencrypt/live/augustine.technoboggle.net/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/augustine.technoboggle.net/privkey.pem;
+
+
+
+
+   
+   charset utf-8;
+   source_charset utf-8;
+   access_log  /usr/parent/shared/logs/host.access.log main;
+   error_log   /usr/parent/shared/logs/host.error.log  debug;
+
+   # 2 text/html
+   gzip on;
+   gzip_vary on;
+   gzip_min_length 10240;
+   gzip_proxied expired no-cache no-store private auth;
+   gzip_types font/eot font/ttf font/woff font/woff2 text/plain text/css text/xml text/javascript application/javascript application/octet-stream application/x-javascript application/xml;
+   gzip_disable "MSIE [1-6]\.";
+   gunzip on;
+
+   location / {
+       root   /usr/share/nginx/html;
+       index  index.html index.htm;
+   }
+
+   #error_page  404              /404.html;
+
+   # redirect server error pages to the static page /50x.html
+   #
+   error_page   500 502 503 504  /50x.html;
+   location = /50x.html {
+       root   /usr/share/nginx/html;
+   }
+
+   # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+   #
+   #location ~ \.php$ {
+   #    proxy_pass   http://127.0.0.1;
+   #}
+
+   # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+   #
+   location ~ \.php$ {
+       root           html;
+       fastcgi_pass   127.0.0.1:9000;
+       fastcgi_index  index.php;
+       fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+       include        fastcgi_params;
+       fastcgi_cache CACHEZONE;
+       fastcgi_cache_min_uses 3;
+       fastcgi_cache_valid 200  301 203 60m;
+       fastcgi_cache_valid 404 10m;
+       fastcgi_cache_revalidate on;
+       proxy_cache_use_stale error timeout http_500;
+       fastcgi_cache_background_update on;
+       fastcgi_cache_lock on;
+   }
+
+   # deny access to .htaccess files, if Apache's document root
+   # concurs with nginx's one
+   #
+   location ~ /\.ht {
+       deny  all;
+   }
+
+   # simplest example of a publisher location for nchan
+   location ~ /pub$ {
+      nchan_publisher;
+      nchan_channel_id $arg_id;
+   }
+
+   # simplest exmapl of a subscriber location for nchan
+   location ~ /sub$ {
+      nchan_subscriber;
+      nchan_channel_id $arg_id;
+   }
+
+   location ~ /channel_events$ {
+      #channel events subscriber location
+      #nchan_subscriber;
+      #nchan_channel_group meta; #"meta" is a SPECIAL channel group
+      #nchan_channel_id $1;
+      nchan_stub_status;
+   }
+
+      #   location ~* .(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|css|rss|atom|js|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf)$ {
+      ##      expires 365d;
+      #      expires max;
+      #      log_not_found off;
+      #      access_log off;
+      #   }
+
+}

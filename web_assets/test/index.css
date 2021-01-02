@@ -1,0 +1,62 @@
+@import url(default.css);
+
+:root {
+  --blue: #1e90ff;
+  --white: #ffffff;
+  --app-width: 1000px;
+  --some-calculation: calc(var(--app-width) + 1);
+  --color-font-general: #336699;
+}
+
+@import url(chat.css);
+
+
+/* 
+EXAMPLES OF HOW THE ABOVE MIGHT BE USED FOLLOW:
+
+body {
+  background-color: var(--blue);
+}
+
+h2 {
+  border-bottom: 2px solid var(--blue);
+}
+
+.container {
+  color: var(--blue);
+  background-color: var(--white);
+  padding: 15px;
+}
+
+button {
+  background-color: var(--white);
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  padding: 5px;
+}
+*/
+
+
+/*
+EXAMPLES OF HOW ONE MIGHT USE THE calc() CSS FUNCTION FOLLOW:
+.main-content {
+  /* Subtract 80px from 100vh *//*
+  height: calc(100vh - 80px);
+}
+ */
+
+
+/*
+GOTO https://css-tricks.com/a-complete-guide-to-calc-in-css/ FOR EXMAPLES
+https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties
+also: https://jsfiddle.net/Z4VWc/1/
+
+https://www.toptal.com/front-end/dynamic-css-with-custom-properties
+ */
+/*
+COLOR THEMES
+https://www.w3schools.com/w3css/w3css_color_themes.asp
+
+https://dev.to/wendell_adriel/working-with-multiple-css-themes-5aej
+*/
+
