@@ -1,7 +1,0 @@
-:root {
-  --blue: #1e90ff;
-  --white: #ffffff;
-  --app-width: 1000px;
-  --some-calculation: calc(var(--app-width) + 1);
-  --color-font-general: #336699;
-}
