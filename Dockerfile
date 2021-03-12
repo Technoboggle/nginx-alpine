@@ -28,7 +28,8 @@ RUN mkdir -p /usr/src && \
     wget "https://ftp.pcre.org/pub/pcre/pcre-8.44.tar.gz" -O pcre.tar.gz
 
 # For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
-RUN apk add --no-cache --virtual .build-deps \
+RUN apk --no-cache upgrade musl &&\
+  apk add --no-cache --virtual .build-deps \
   gcc \
   libc-dev \
   make \
@@ -69,7 +70,8 @@ RUN cd /usr/src && \
 
 FROM nginx:1.19.7-alpine
 
-RUN apk update
+RUN apk --no-cache upgrade musl &&\
+    apk update
 RUN apk add bash
 # Extract the dynamic module NCHAN from the builder image
 COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
