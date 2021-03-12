@@ -1,9 +1,4 @@
-ARG alpine_ver=3.13.2
-FROM alpine:$alpine_ver AS builder
-ARG nginxver=1.19.7
-ARG nchan_ver=1.2.7
-ARG redis_ver=0.3.9
-
+FROM alpine:3.13.2 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -15,20 +10,20 @@ redirections and PCRE compliane regular expresssions."
 RUN apk update
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-#ENV nginx_ver "$nginx_ver"
+ENV NGINX_VERSION 1.19.7
 
 # Our NCHAN version
-#ENV NCHAN_VERSION "$nchan_ver"
+ENV NCHAN_VERSION 1.2.7
 
 # Our HTTP Redis version
-#ENV HTTP_REDIS_VERSION "$redis_ver"
-RUN echo "http://nginx.org/download/nginx-$nginxver.tar.gz"
+ENV HTTP_REDIS_VERSION 0.3.9
+
 # Download sources
 RUN mkdir -p /usr/src && \
     cd /usr/src && \
-    wget "http://nginx.org/download/nginx-${nginxver}.tar.gz" -O nginx.tar.gz && \
-    wget "https://github.com/slact/nchan/archive/v${nchan_ver}.tar.gz" -O nchan.tar.gz && \
-    wget "https://people.freebsd.org/~osa/ngx_http_redis-${redis_ver}.tar.gz" -O http_redis.tar.gz && \
+    wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
+    wget "https://github.com/slact/nchan/archive/v${NCHAN_VERSION}.tar.gz" -O nchan.tar.gz && \
+    wget "https://people.freebsd.org/~osa/ngx_http_redis-${HTTP_REDIS_VERSION}.tar.gz" -O http_redis.tar.gz && \
     wget "https://github.com/GetPageSpeed/ngx_security_headers/archive/master.tar.gz" -O ngx_security_headers.tar.gz && \
     wget "https://ftp.pcre.org/pub/pcre/pcre-8.44.tar.gz" -O pcre.tar.gz
 
@@ -55,16 +50,16 @@ RUN CONFARGS="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/us
 RUN cd /usr/src && \
   tar -zxC /usr/src -f nginx.tar.gz && \
   tar -xzvf "nchan.tar.gz" && \
-  sed -i 's/uint16_t  memstore_worker_generation/extern uint16_t  memstore_worker_generation/g' "nchan-${nchan_ver}/src/store/memory/store-private.h" && \
-  sed -i 's/redis_lua_scripts_t redis_lua_scripts/extern redis_lua_scripts_t redis_lua_scripts/g' "nchan-${nchan_ver}/src/store/redis/redis_lua_commands.h" && \
-  sed -i 's/const int redis_lua_scripts_count/extern const int redis_lua_scripts_count/g' "nchan-${nchan_ver}/src/store/redis/redis_lua_commands.h" && \
+  sed -i 's/uint16_t  memstore_worker_generation/extern uint16_t  memstore_worker_generation/g' "nchan-${NCHAN_VERSION}/src/store/memory/store-private.h" && \
+  sed -i 's/redis_lua_scripts_t redis_lua_scripts/extern redis_lua_scripts_t redis_lua_scripts/g' "nchan-${NCHAN_VERSION}/src/store/redis/redis_lua_commands.h" && \
+  sed -i 's/const int redis_lua_scripts_count/extern const int redis_lua_scripts_count/g' "nchan-${NCHAN_VERSION}/src/store/redis/redis_lua_commands.h" && \
   tar -xzvf "http_redis.tar.gz" && \
   tar -xzvf "pcre.tar.gz" && \
   tar -xzvf "ngx_security_headers.tar.gz" && \
-  NCHANDIR="$(pwd)/nchan-${nchan_ver}" && \
-  HTTP_REDIS_DIR="$(pwd)/ngx_http_redis-${redis_ver}" && \
+  NCHANDIR="$(pwd)/nchan-${NCHAN_VERSION}" && \
+  HTTP_REDIS_DIR="$(pwd)/ngx_http_redis-${HTTP_REDIS_VERSION}" && \
   SEC_HEADERS_DIR="$(pwd)/ngx_security_headers-master" && \
-  cd /usr/src/nginx-$nginxver && \
+  cd /usr/src/nginx-$NGINX_VERSION && \
   ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$SEC_HEADERS_DIR && \
   make modules && \
   mv ./objs/*.so /
