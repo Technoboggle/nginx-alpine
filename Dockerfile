@@ -7,7 +7,7 @@ provide connectors for socket.io style applications \
 and also secure headers, Redis conectivity for session \
 redirections and PCRE compliane regular expresssions."
 
-RUN apk update
+RUN apk --no-cache update
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
 ENV NGINX_VERSION 1.19.7
@@ -42,9 +42,9 @@ RUN apk --no-cache upgrade musl &&\
   gnupg \
   libxslt-dev \
   gd-dev \
-  geoip-dev
+  geoip-dev && \
 # Following switch removed as invalid on Alpine -fomit-frame-pointer
-RUN CONFARGS="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --http-client-body-temp-path=/var/cache/nginx/client_temp --http-proxy-temp-path=/var/cache/nginx/proxy_temp --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp --http-scgi-temp-path=/var/cache/nginx/scgi_temp --with-perl_modules_path=/usr/lib/perl5/vendor_perl --user=nginx --group=nginx --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-cc-opt='-Os' --with-ld-opt=-Wl,--as-needed "
+  CONFARGS="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --http-client-body-temp-path=/var/cache/nginx/client_temp --http-proxy-temp-path=/var/cache/nginx/proxy_temp --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp --http-scgi-temp-path=/var/cache/nginx/scgi_temp --with-perl_modules_path=/usr/lib/perl5/vendor_perl --user=nginx --group=nginx --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-cc-opt='-Os' --with-ld-opt=-Wl,--as-needed "
 
 # Reuse same cli arguments as the nginx:alpine image used to build
 #RUN CONFARGS=$(nginx -V 2>&1 | sed -n -e 's/^.*arguments: //p') \ 
@@ -71,9 +71,9 @@ RUN cd /usr/src && \
 
 FROM nginx:1.19.7-alpine
 
-RUN apk --no-cache upgrade musl &&\
-    apk update
-RUN apk add bash
+RUN apk upgrade --no-cache musl && \
+    apk update --no-cache && \
+    apk add bash
 # Extract the dynamic module NCHAN from the builder image   -fcommon
 COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
 # Extract the dynamic module HTTP_REDIS from the builder image
@@ -81,12 +81,6 @@ COPY --from=builder /ngx_http_redis_module.so /usr/local/nginx/modules/ngx_http_
 # Extract the dynamic module ngx_security_headers from the builder image
 COPY --from=builder /ngx_http_security_headers_module.so /usr/local/nginx/modules/ngx_http_security_headers_module.so
 
-#RUN rm /etc/nginx/conf.d/default.conf
-RUN mkdir -p /usr/parent
-#COPY web_assets/ /usr/share/nginx/html/
-
-#COPY nginx.conf /etc/nginx/nginx.conf
-#COPY default.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80 443
 STOPSIGNAL SIGTERM
 CMD ["nginx", "-g", "daemon off;"]
