@@ -9,6 +9,8 @@ xattr -c *
 chmod 0666 *
 chmod 0777 *.sh
 
+
+# for more build detail add the following argument:  --progress=plain
 docker build -f Dockerfile -t technoboggle/nginx_mods-alpine:1.19.7-3.13.2 .
 docker run -it -d -p 8000:80 --rm --name mynginx technoboggle/nginx_mods-alpine:1.19.7-3.13.2
 docker tag technoboggle/nginx_mods-alpine:1.19.7-3.13.2 technoboggle/nginx_mods-alpine:latest

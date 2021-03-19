@@ -22,7 +22,7 @@ ENV HTTP_REDIS_VERSION 0.3.9
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
-    GROUP_NAME=www-data
+    GROUP_NAME=www-data 
 
 
 # Download sources
@@ -84,10 +84,20 @@ ENV USER_ID=82 \
 
 RUN apk upgrade --no-cache musl && \
     apk update --no-cache && \
-    apk add bash shadow && \
-#    groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
+    apk add --no-cache bash shadow && \
+#    apk add --no-cache openssl && \
+#    wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.tgz -O /usr/local/bin/ngrok.tgz && \
+#    cd /usr/local/bin/ && \
+#    tar -xvzf ngrok.tgz && \
+#    rm -f ngrok.tgz && \
+#    if [ ! -d "/root/.ngrok2" ]; then \
+#      mkdir /root/.ngrok2; \
+#    fi; \
+##    groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
     useradd -r -u "$USER_ID" -g "$GROUP_ID" -c "$GROUP_NAME" -d /srv/www -s /sbin/nologin "$USER_NAME"
 
+
+#COPY /ngrok.yml /root/.ngrok2/
 # Extract the dynamic module NCHAN from the builder image   -fcommon
 COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
 # Extract the dynamic module HTTP_REDIS from the builder image
