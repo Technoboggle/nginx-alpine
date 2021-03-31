@@ -76,7 +76,7 @@ RUN cd /usr/src && \
 
 #  make && make install
 
-FROM nginx:1.19.7-alpine
+FROM nginx:mainline-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
