@@ -1,4 +1,4 @@
-FROM alpine:3.13.2 AS builder
+FROM alpine:3.13.5 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -10,10 +10,10 @@ redirections and PCRE compliane regular expresssions."
 RUN apk --no-cache update
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-ENV NGINX_VERSION 1.19.7
+ENV NGINX_VERSION 1.19.10
 
 # Our NCHAN version
-ENV NCHAN_VERSION 1.2.7
+ENV NCHAN_VERSION 1.2.8
 
 # Our HTTP Redis version
 ENV HTTP_REDIS_VERSION 0.3.9
@@ -76,7 +76,7 @@ RUN cd /usr/src && \
 
 #  make && make install
 
-FROM nginx:1.19.7-alpine
+FROM nginx:1.19.10-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
