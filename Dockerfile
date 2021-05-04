@@ -104,6 +104,8 @@ COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_modu
 COPY --from=builder /ngx_http_redis_module.so /usr/local/nginx/modules/ngx_http_redis_module.so
 # Extract the dynamic module ngx_security_headers from the builder image
 COPY --from=builder /ngx_http_security_headers_module.so /usr/local/nginx/modules/ngx_http_security_headers_module.so
+RUN apk update; \
+    apk add --upgrade libjpeg-turbo;
 WORKDIR /srv/www
 EXPOSE 80 443
 STOPSIGNAL SIGTERM
