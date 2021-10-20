@@ -18,3 +18,4 @@ docker login
 docker push technoboggle/nginx_mods-alpine:1.21.3-3.14.2
 docker push technoboggle/nginx_mods-alpine:latest
 docker container stop -t 10 mynginx
+

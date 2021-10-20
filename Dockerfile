@@ -89,7 +89,7 @@ ENV USER_ID=82 \
     USER_NAME=www-data \
     GROUP_NAME=www-data
 
-RUN apk upgrade --no-cache musl && \
+RUN apk upgrade --no-cache musl curl libcurl&& \
     apk update --no-cache && \
     apk add --no-cache bash shadow
 #    apk add --no-cache openssl && \
