@@ -1,3 +1,8 @@
+
+[![Known Vulnerabilities](https://snyk.io/test/github/Technoboggle/nginx-alpine/badge.svg)](https://snyk.io/test/github/Technoboggle/nginx-alpine)
+
+
+
 # The following commands to build image and upload to dockerhub
 ```
 
