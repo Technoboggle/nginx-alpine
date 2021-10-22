@@ -53,10 +53,12 @@ RUN apk add --no-cache --virtual .build-deps \
   zlib-dev \
   linux-headers \
   curl \
+  libcurl \
   gnupg \
   libxslt-dev \
   gd-dev \
   geoip-dev && \
+  apk upgrade --no-cache musl curl libcurl&& \
   (deluser "${USER_NAME}" || true) && \
   (delgroup "${GROUP_NAME}" || true) && \
   groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
