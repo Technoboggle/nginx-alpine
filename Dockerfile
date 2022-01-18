@@ -1,4 +1,4 @@
-FROM alpine:3.14.2 AS builder
+FROM alpine:3.15 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -10,10 +10,10 @@ redirections and PCRE compliane regular expresssions."
 RUN apk --no-cache update
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-ENV NGINX_VERSION 1.21.3
+ENV NGINX_VERSION 1.21.5
 
 # Our NCHAN version
-ENV NCHAN_VERSION 1.2.12
+ENV NCHAN_VERSION 1.2.15
 
 # Our HTTP Redis version
 ENV HTTP_REDIS_VERSION 0.3.9
@@ -40,7 +40,8 @@ RUN apk --no-cache upgrade musl && \
     wget "https://github.com/slact/nchan/archive/v${NCHAN_VERSION}.tar.gz" -O nchan.tar.gz && \
     wget "https://people.freebsd.org/~osa/ngx_http_redis-${HTTP_REDIS_VERSION}.tar.gz" -O http_redis.tar.gz && \
     wget "https://github.com/GetPageSpeed/ngx_security_headers/archive/refs/tags/${NGX_SEC_HEADER}.tar.gz" -O ngx_security_headers.tar.gz && \
-    wget "https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz" -O pcre.tar.gz
+#    wget "https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz" -O pcre.tar.gz
+    wget "https://osdn.net/frs/g_redir.php?m=rwthaachen&f=pcre%2Fpcre%2F8.45%2Fpcre-${PCRE_VERSION}.tar.gz" -O pcre.tar.gz
 
 # For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
 RUN apk add --no-cache --virtual .build-deps \
@@ -85,7 +86,7 @@ RUN cd /usr/src && \
 
 #  make && make install
 
-FROM nginx:1.21.3-alpine
+FROM nginx:1.21.5-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
