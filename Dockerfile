@@ -112,7 +112,7 @@ RUN cd /usr/src && \
 
 #  make && make install
 
-FROM nginx:1.21.6-alpine
+FROM nginx:1.22.0-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
