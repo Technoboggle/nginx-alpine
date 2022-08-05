@@ -18,10 +18,10 @@ docker build -f Dockerfile -t technoboggle/nginx_mods-alpine:"$nginx_ver-$alpine
 #--progress=plain 
 
 docker run -it -d --rm -p 8000:80 --name mynginx technoboggle/nginx_mods-alpine:"$nginx_ver-$alpine_ver"
-docker tag technoboggle/nginx_mods-alpine:"$nginx_ver-$alpine_ver" technoboggle/nginx_mods-alpine:latest
+#docker tag technoboggle/nginx_mods-alpine:"$nginx_ver-$alpine_ver" technoboggle/nginx_mods-alpine:latest
 docker login
 docker push technoboggle/nginx_mods-alpine:"$nginx_ver-$alpine_ver"
-docker push technoboggle/nginx_mods-alpine:latest
-#docker container stop -t 10 mynginx
+#docker push technoboggle/nginx_mods-alpine:latest
+docker container stop -t 10 mynginx
 
 cd "$owd"

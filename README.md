@@ -29,3 +29,4 @@ docker push technoboggle/nginx_mods-alpine:1.22.0-3.15.5
 docker push technoboggle/nginx_mods-alpine:latest
 docker container stop -t 10 mynginx
 
+deprecated the use of the :latest tag as it seeds confusion
