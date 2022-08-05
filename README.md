@@ -16,16 +16,16 @@ chmod 0777 *.sh
 
 
 # for more build detail add the following argument:  --progress=plain
-docker build -f Dockerfile -t technoboggle/nginx_mods-alpine:1.22.0-3.15.5 --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') --build-arg VCS_REF=a718a02592ad91e256c74750b566a4a9e67bba57 --build-arg BUILD_VERSION=0.05 --no-cache --progress=plain .
+docker build -f Dockerfile -t technoboggle/nginx_mods-alpine:1.22.0-3.15.5 --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') --build-arg VCS_REF="`git rev-parse --verify HEAD`" --build-arg BUILD_VERSION=0.05 --no-cache --progress=plain .
 in the above pay special attenttion to the values to be updated which are:
-  7aa4f4fed2822afd7ae0f083526aaba6ea502ca9  = git commit SHA key (this can be found with: git rev-parse --verify HEAD )
-  0.05                                      = current version of this image
+  "`git rev-parse --verify HEAD`"  = git commit SHA key (this can be found with: git rev-parse --verify HEAD )
+  0.05                             = current version of this image
 
 
 docker run -it -d -p 8000:80 --rm --name mynginx technoboggle/nginx_mods-alpine:1.22.0-3.15.5
 docker tag technoboggle/nginx_mods-alpine:1.22.0-3.15.5 technoboggle/nginx_mods-alpine:latest
 docker login
-docker push technoboggle/nginx_mods-alpine:1.22.0-3.15.
+docker push technoboggle/nginx_mods-alpine:1.22.0-3.15.5
 docker push technoboggle/nginx_mods-alpine:latest
 docker container stop -t 10 mynginx
 

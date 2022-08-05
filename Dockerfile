@@ -1,4 +1,4 @@
-FROM alpine:3.15.5 AS builder
+FROM alpine:3.16.1 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -26,12 +26,14 @@ LABEL org.label-schema.version=$BUILD_VERSION
 
 RUN apk --no-cache update
 
+ENV ALPINE_VERSION 3.16.1
+
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-ENV NGINX_VERSION 1.22.0
+ENV NGINX_VERSION 1.21.6
 ## When last tried (21/07/2022) nginx 1.23.0 would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
 
 # Our NCHAN version
-ENV NCHAN_VERSION 1.3.0
+ENV NCHAN_VERSION 1.3.1
 
 # Our HTTP Redis version
 ENV HTTP_REDIS_VERSION 0.3.9
@@ -113,7 +115,7 @@ RUN apk --no-cache upgrade musl && \
 
 #  make && make install
 
-FROM nginx:1.22.0-alpine
+FROM nginx:1.21.6-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
