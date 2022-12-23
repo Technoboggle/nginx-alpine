@@ -1,4 +1,4 @@
-FROM alpine:3.16.1 AS builder
+FROM alpine:3.17.0 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -26,29 +26,28 @@ LABEL org.label-schema.version=$BUILD_VERSION
 
 RUN apk --no-cache update
 
-ENV ALPINE_VERSION 3.16.1
+ARG ALPINE_VERSION=3.17.0
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-ENV NGINX_VERSION 1.21.6
+ARG NGINX_VERSION=1.22.1
 ## When last tried (21/07/2022) nginx 1.23.0 would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
 
 # Our NCHAN version
-ENV NCHAN_VERSION 1.3.1
+ARG NCHAN_VERSION=1.3.1
 
 # Our HTTP Redis version
-ENV HTTP_REDIS_VERSION 0.3.9
+ARG HTTP_REDIS_VERSION=0.3.9
 
 # Our nginx security headers version
-ENV NGX_SEC_HEADER 0.0.11
+ARG NGX_SEC_HEADER=0.0.11
 
 # Our nginx security headers version
-ENV PCRE_VERSION 8.45
-
+ARG PCRE_VERSION=8.45
 # Our nginx mod_zip version
-ENV MOD_ZIP_VERSION 1.2.0
+ARG MOD_ZIP_VERSION=1.2.0
 
 # User credentials nginx to run as
-ENV USER_ID=82 \
+ARG USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
     GROUP_NAME=www-data 
@@ -62,10 +61,7 @@ RUN apk --no-cache upgrade musl && \
   wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
   wget "https://github.com/slact/nchan/archive/v${NCHAN_VERSION}.tar.gz" -O nchan.tar.gz && \
   wget "https://people.freebsd.org/~osa/ngx_http_redis-${HTTP_REDIS_VERSION}.tar.gz" -O http_redis.tar.gz && \
-#  wget "https://people.freebsd.org/~osa/ngx_http_redis-0.3.8.tar.gz" -O http_redis.tar.gz && \
   wget "https://github.com/GetPageSpeed/ngx_security_headers/archive/refs/tags/${NGX_SEC_HEADER}.tar.gz" -O ngx_security_headers.tar.gz && \
-#  wget "https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz" -O pcre.tar.gz && \
-#  wget "https://osdn.net/frs/g_redir.php?m=rwthaachen&f=pcre%2Fpcre%2F8.45%2Fpcre-${PCRE_VERSION}.tar.gz" -O pcre.tar.gz && \
   wget "http://ftp.cs.stanford.edu/pub/exim/pcre/pcre-${PCRE_VERSION}.tar.gz"  -O pcre.tar.gz && \
   wget "https://github.com/evanmiller/mod_zip/archive/refs/tags/${MOD_ZIP_VERSION}.tar.gz" -O mod_zip.tar.gz && \
 
@@ -115,7 +111,7 @@ RUN apk --no-cache upgrade musl && \
 
 #  make && make install
 
-FROM nginx:1.23.1-alpine
+FROM nginx:1.23.3-alpine
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
