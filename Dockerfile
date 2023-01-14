@@ -1,4 +1,4 @@
-FROM alpine:3.17.0 AS builder
+FROM alpine:3.17.1 AS builder
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -26,17 +26,19 @@ LABEL org.label-schema.version=$BUILD_VERSION
 
 RUN apk --no-cache update
 
-ARG ALPINE_VERSION=3.17.0
+ARG ALPINE_VERSION=3.17.1
 
 # nginx:alpine contains NGINX_VERSION environment variable, like so:
-ARG NGINX_VERSION=1.22.1
-## When last tried (21/07/2022) nginx 1.23.0 would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
+ARG NGINX_VERSION=1.21.6
+## When last tried (21/07/2022) nginx versions above 1.21.6 (including 1.23.3) would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
 
 # Our NCHAN version
-ARG NCHAN_VERSION=1.3.1
+ARG NCHAN_VERSION=1.3.6
 
 # Our HTTP Redis version
 ARG HTTP_REDIS_VERSION=0.3.9
+
+ARG REDIS2_NGINX=0.15
 
 # Our nginx security headers version
 ARG NGX_SEC_HEADER=0.0.11
@@ -61,6 +63,7 @@ RUN apk --no-cache upgrade musl && \
   wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
   wget "https://github.com/slact/nchan/archive/v${NCHAN_VERSION}.tar.gz" -O nchan.tar.gz && \
   wget "https://people.freebsd.org/~osa/ngx_http_redis-${HTTP_REDIS_VERSION}.tar.gz" -O http_redis.tar.gz && \
+  wget "https://github.com/openresty/redis2-nginx-module/archive/refs/tags/v${REDIS2_NGINX}.tar.gz" -O redis2.tar.gz && \
   wget "https://github.com/GetPageSpeed/ngx_security_headers/archive/refs/tags/${NGX_SEC_HEADER}.tar.gz" -O ngx_security_headers.tar.gz && \
   wget "http://ftp.cs.stanford.edu/pub/exim/pcre/pcre-${PCRE_VERSION}.tar.gz"  -O pcre.tar.gz && \
   wget "https://github.com/evanmiller/mod_zip/archive/refs/tags/${MOD_ZIP_VERSION}.tar.gz" -O mod_zip.tar.gz && \
@@ -94,16 +97,18 @@ RUN apk --no-cache upgrade musl && \
   tar -zxC /usr/src -f nginx.tar.gz && \
   tar -xzvf "nchan.tar.gz" && \
   tar -xzvf "http_redis.tar.gz" && \
+  tar -xvzf "redis2.tar.gz" && \
   tar -xzvf "pcre.tar.gz" && \
   tar -xzvf "ngx_security_headers.tar.gz" && \
   tar -xzvf "mod_zip.tar.gz" && \
   NCHANDIR="$(pwd)/nchan-${NCHAN_VERSION}" && \
   HTTP_REDIS_DIR="$(pwd)/ngx_http_redis-${HTTP_REDIS_VERSION}" && \
+  REDIS2_NGINX_DIR="$(pwd)/redis2-nginx-module-${REDIS2_NGINX}" && \
   SEC_HEADERS_DIR="$(pwd)/ngx_security_headers-${NGX_SEC_HEADER}" && \
   MOD_ZIP_DIR="$(pwd)/mod_zip-${MOD_ZIP_VERSION}" && \
   cd /usr/src/nginx-$NGINX_VERSION && \
   CFLAGS="-fcommon" \
-  ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$SEC_HEADERS_DIR --add-dynamic-module=$MOD_ZIP_DIR && \
+  ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$REDIS2_NGINX_DIR --add-dynamic-module=$SEC_HEADERS_DIR --add-dynamic-module=$MOD_ZIP_DIR && \
   make modules && \
   mv ./objs/*.so / && \
   ls -al /
@@ -133,14 +138,6 @@ RUN apk upgrade --no-cache musl curl libcurl&& \
 
 
 #COPY /ngrok.yml /root/.ngrok2/
-# Extract the dynamic module NCHAN from the builder image   -fcommon
-#COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
-# Extract the dynamic module HTTP_REDIS from the builder image
-#COPY --from=builder /ngx_http_redis_module.so /usr/local/nginx/modules/ngx_http_redis_module.so
-# Extract the dynamic module ngx_security_headers from the builder image
-#COPY --from=builder /ngx_http_security_headers_module.so /usr/local/nginx/modules/ngx_http_security_headers_module.so
-# Extract the dynamic module mod_zip from the builder image
-#COPY --from=builder /ngx_http_zip_module.so /usr/local/nginx/modules/ngx_http_zip_module.so
 
 # Extract the dynamic modules from the builder image above and place in lightweight image for execution
 COPY --from=builder /*.so /usr/local/nginx/modules/
