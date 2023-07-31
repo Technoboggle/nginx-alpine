@@ -1,6 +1,6 @@
 
 [![Known Vulnerabilities](https://snyk.io/test/github/Technoboggle/nginx-alpine/badge.svg)](https://snyk.io/test/github/Technoboggle/nginx-alpine)
-
+[![Docker Hub badge][dockerhub-badge]][dockerhub]
 
 
 # The following commands to build image and upload to dockerhub
@@ -22,11 +22,9 @@ in the above pay special attenttion to the values to be updated which are:
   0.05                             = current version of this image
 
 
-docker run -it -d -p 8000:80 --rm --name mynginx technoboggle/nginx_mods-alpine:1.22.0-3.15.5
-docker tag technoboggle/nginx_mods-alpine:1.22.0-3.15.5 technoboggle/nginx_mods-alpine:latest
+docker run -it -d -p 8000:80 --rm --name mynginx technoboggle/nginx_mods-alpine:1.25.1-3.17
+docker tag technoboggle/nginx_mods-alpine:1.25.1-3.17 technoboggle/nginx_mods-alpine:latest
 docker login
-docker push technoboggle/nginx_mods-alpine:1.22.0-3.15.5
-docker push technoboggle/nginx_mods-alpine:latest
 docker container stop -t 10 mynginx
 
-deprecated the use of the :latest tag as it seeds confusion
+removed the use of the :latest tag as it seeds confusion

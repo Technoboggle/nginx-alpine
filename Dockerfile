@@ -32,6 +32,8 @@ ARG ALPINE_VERSION=3.17.1
 ARG NGINX_VERSION=1.21.6
 ## When last tried (21/07/2022) nginx versions above 1.21.6 (including 1.23.3) would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
 
+ARG NGINX_FIANL_VERSION=1.25.1
+
 # Our NCHAN version
 ARG NCHAN_VERSION=1.3.6
 
@@ -45,19 +47,30 @@ ARG NGX_SEC_HEADER=0.0.11
 
 # Our nginx security headers version
 ARG PCRE_VERSION=8.45
+
 # Our nginx mod_zip version
 ARG MOD_ZIP_VERSION=1.2.0
+
+# nginx_devel_kit
+ARG NGINX_DEVEL_KIT=0.3.2
+
+# ngx_set_misc - Various set_xxx directives added to nginx's rewrite module
+# (md5/sha1, sql/json quoting, and many more)
+ARG SET_MISC_NGINX_MODULE=0.33
+
+# ngx_srcache - Transparent subrequest-based caching layout for arbitrary nginx locations
+ARG SRCACHE_NGINX=0.33rc1
 
 # User credentials nginx to run as
 ARG USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
-    GROUP_NAME=www-data 
+    GROUP_NAME=www-data
 
 
 # Download sources
 RUN apk --no-cache upgrade musl && \
-  apk add --no-cache shadow && \
+  apk add --no-cache linux-pam shadow && \
   mkdir -p /usr/src && \
   cd /usr/src && \
   wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
@@ -67,7 +80,10 @@ RUN apk --no-cache upgrade musl && \
   wget "https://github.com/GetPageSpeed/ngx_security_headers/archive/refs/tags/${NGX_SEC_HEADER}.tar.gz" -O ngx_security_headers.tar.gz && \
   wget "http://ftp.cs.stanford.edu/pub/exim/pcre/pcre-${PCRE_VERSION}.tar.gz"  -O pcre.tar.gz && \
   wget "https://github.com/evanmiller/mod_zip/archive/refs/tags/${MOD_ZIP_VERSION}.tar.gz" -O mod_zip.tar.gz && \
-
+  wget "https://github.com/vision5/ngx_devel_kit/archive/refs/tags/v${NGINX_DEVEL_KIT}.tar.gz" -O nginx_devel_kit.tar.gz && \
+  wget "https://github.com/openresty/set-misc-nginx-module/archive/refs/tags/v${SET_MISC_NGINX_MODULE}.tar.gz" -O set-misc-nginx-module.tar.gz && \
+  wget "https://github.com/openresty/srcache-nginx-module/archive/refs/tags/v${SRCACHE_NGINX}.tar.gz" -O srcache.tar.gz && \
+  \
 # For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
   apk add --no-cache --virtual .build-deps \
   gcc \
@@ -84,14 +100,14 @@ RUN apk --no-cache upgrade musl && \
   libxslt-dev \
   gd-dev \
   geoip-dev && \
-  apk upgrade --no-cache musl curl libcurl&& \
+  apk upgrade --no-cache musl curl libcurl && \
   (deluser "${USER_NAME}" || true) && \
   (delgroup "${GROUP_NAME}" || true) && \
   groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
   useradd -r -u "$USER_ID" -g "$GROUP_ID" -c "$GROUP_NAME" -d /srv/www -s /sbin/nologin "$USER_NAME" && \
 # Following switch removed as invalid on Alpine -fomit-frame-pointer
   CONFARGS="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --http-client-body-temp-path=/var/cache/nginx/client_temp --http-proxy-temp-path=/var/cache/nginx/proxy_temp --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp --http-scgi-temp-path=/var/cache/nginx/scgi_temp --with-perl_modules_path=/usr/lib/perl5/vendor_perl --user=$USER_NAME --group=$GROUP_NAME --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-cc-opt='-Os' --with-ld-opt=-Wl,--as-needed " && \
-
+  \
 # Reuse same cli arguments as the nginx:alpine image used to build
   cd /usr/src && \
   tar -zxC /usr/src -f nginx.tar.gz && \
@@ -101,14 +117,25 @@ RUN apk --no-cache upgrade musl && \
   tar -xzvf "pcre.tar.gz" && \
   tar -xzvf "ngx_security_headers.tar.gz" && \
   tar -xzvf "mod_zip.tar.gz" && \
+  \
+  tar -xzvf "nginx_devel_kit.tar.gz" && \
+  tar -xzvf "set-misc-nginx-module.tar.gz" && \
+  tar -xzvf "srcache.tar.gz" && \
+  \
   NCHANDIR="$(pwd)/nchan-${NCHAN_VERSION}" && \
   HTTP_REDIS_DIR="$(pwd)/ngx_http_redis-${HTTP_REDIS_VERSION}" && \
   REDIS2_NGINX_DIR="$(pwd)/redis2-nginx-module-${REDIS2_NGINX}" && \
   SEC_HEADERS_DIR="$(pwd)/ngx_security_headers-${NGX_SEC_HEADER}" && \
   MOD_ZIP_DIR="$(pwd)/mod_zip-${MOD_ZIP_VERSION}" && \
+  \
+  MOD_NGINX_DEVEL_KIT_DIR="$(pwd)/ngx_devel_kit-${NGINX_DEVEL_KIT}" && \
+  MOD_SET_MISC_NGINX_MODULE_DIR="$(pwd)/set-misc-nginx-module-${SET_MISC_NGINX_MODULE}" && \
+  SRCACHE_NGINX_MODULE_DIR="$(pwd)/srcache-nginx-module-${SRCACHE_NGINX}" && \
+  \
+  \
   cd /usr/src/nginx-$NGINX_VERSION && \
   CFLAGS="-fcommon" \
-  ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$REDIS2_NGINX_DIR --add-dynamic-module=$SEC_HEADERS_DIR --add-dynamic-module=$MOD_ZIP_DIR && \
+  ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$MOD_NGINX_DEVEL_KIT_DIR --add-dynamic-module=$MOD_SET_MISC_NGINX_MODULE_DIR  --add-dynamic-module=$SRCACHE_NGINX_MODULE_DIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$REDIS2_NGINX_DIR --add-dynamic-module=$SEC_HEADERS_DIR --add-dynamic-module=$MOD_ZIP_DIR && \
   make modules && \
   mv ./objs/*.so / && \
   ls -al /
@@ -116,7 +143,7 @@ RUN apk --no-cache upgrade musl && \
 
 #  make && make install
 
-FROM nginx:1.23.3-alpine
+FROM nginx:1.25.1-alpine3.17
 ENV USER_ID=82 \
     GROUP_ID=82 \
     USER_NAME=www-data \
@@ -124,7 +151,7 @@ ENV USER_ID=82 \
 
 RUN apk upgrade --no-cache musl curl libcurl&& \
     apk update --no-cache && \
-    apk add --no-cache bash shadow libjpeg-turbo;
+    apk add --no-cache bash shadow openssl libjpeg-turbo;
 #    apk add --no-cache openssl && \
 #    wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.tgz -O /usr/local/bin/ngrok.tgz && \
 #    cd /usr/local/bin/ && \
@@ -139,11 +166,18 @@ RUN apk upgrade --no-cache musl curl libcurl&& \
 
 #COPY /ngrok.yml /root/.ngrok2/
 
+### THIS BLOCK IS FOR DOCUMENTATION ONLY DO NOT ENABLE
+## Extract the dynamic module NCHAN from the builder image   -fcommon
+#COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
+## Extract the dynamic module HTTP_REDIS from the builder image
+#COPY --from=builder /ngx_http_redis_module.so /usr/local/nginx/modules/ngx_http_redis_module.so
+## Extract the dynamic module ngx_security_headers from the builder image
+#COPY --from=builder /ngx_http_security_headers_module.so /usr/local/nginx/modules/ngx_http_security_headers_module.so
+
+
 # Extract the dynamic modules from the builder image above and place in lightweight image for execution
 COPY --from=builder /*.so /usr/local/nginx/modules/
 
-#RUN apk update; \
-#    apk add --upgrade libjpeg-turbo;
 WORKDIR /srv/www
 EXPOSE 80 443
 STOPSIGNAL SIGTERM
