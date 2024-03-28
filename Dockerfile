@@ -1,4 +1,62 @@
-FROM alpine:3.17.1 AS builder
+ARG BUILDER_ALPINE_VERSION
+ARG BUILDER_NGINX_VERSION
+ARG ALPINE_VERSION
+ARG NGINX_VERSION
+ARG NCHAN_VERSION
+ARG HTTP_REDIS_VERSION
+ARG REDIS2_NGINX
+ARG NGX_SEC_HEADER
+ARG PCRE_VERSION
+ARG MOD_ZIP_VERSION
+ARG SET_MISC_NGINX_MODULE
+ARG NGINX_DEVEL_KIT
+ARG SRCACHE_NGINX
+ARG MAINTAINER_NAME
+ARG AUTHORNAME
+ARG AUTHORS
+ARG VERSION
+ARG SCHEMAVERSION
+ARG NAME
+ARG DESCRIPTION
+ARG URL
+ARG VCS_URL
+ARG VENDOR
+ARG BUILD_VERSION
+ARG BUILD_DATE
+ARG VCS_REF
+ARG DOCKERCMD
+
+
+FROM alpine:${BUILDER_ALPINE_VERSION} as builder
+
+ARG BUILDER_ALPINE_VERSION
+ARG BUILDER_NGINX_VERSION
+ARG ALPINE_VERSION
+ARG NGINX_VERSION
+ARG NCHAN_VERSION
+ARG HTTP_REDIS_VERSION
+ARG REDIS2_NGINX
+ARG NGX_SEC_HEADER
+ARG PCRE_VERSION
+ARG MOD_ZIP_VERSION
+ARG SET_MISC_NGINX_MODULE
+ARG NGINX_DEVEL_KIT
+ARG SRCACHE_NGINX
+ARG MAINTAINER_NAME
+ARG AUTHORNAME
+ARG AUTHORS
+ARG VERSION
+ARG SCHEMAVERSION
+ARG NAME
+ARG DESCRIPTION
+ARG URL
+ARG VCS_URL
+ARG VENDOR
+ARG BUILD_VERSION
+ARG BUILD_DATE
+ARG VCS_REF
+ARG DOCKERCMD
+
 LABEL maintainer="Edward Finlayson <technoboggle@lasermail.co.uk>" \
   version="1.0.0" \
   description="This docker image is built as a super small nginx \
@@ -7,73 +65,63 @@ provide connectors for socket.io style applications \
 and also secure headers, Redis conectivity for session \
 redirections and PCRE compliane regular expresssions."
 
-# Technoboggle Build time arguments.
-ARG BUILD_DATE
-ARG VCS_REF
-ARG BUILD_VERSION
+ENV NCHAN_VERSION="${NCHAN_VERSION}"
+ENV HTTP_REDIS_VERSION="${HTTP_REDIS_VERSION}"
+ENV REDIS2_NGINX="${REDIS2_NGINX}"
+ENV NGX_SEC_HEADER="${NGX_SEC_HEADER}"
+ENV PCRE_VERSION="${PCRE_VERSION}"
+ENV MOD_ZIP_VERSION="${MOD_ZIP_VERSION}"
+ENV SET_MISC_NGINX_MODULE="${SET_MISC_NGINX_MODULE}"
+ENV NGINX_DEVEL_KIT="${NGINX_DEVEL_KIT}"
+ENV SRCACHE_NGINX="${SRCACHE_NGINX}"
+ENV MAINTAINER_NAME="${MAINTAINER_NAME}"
+ENV AUTHORNAME="${AUTHORNAME}"
+ENV AUTHORS="${AUTHORS}"
+ENV VERSION="${VERSION}"
+ENV SCHEMAVERSION="${SCHEMAVERSION}"
+ENV NAME="${NAME}"
+ENV DESCRIPTION="${DESCRIPTION}"
+ENV URL="${URL}"
+ENV VCS_URL="${VCS_URL}"
+ENV VENDOR="${VENDOR}"
+ENV BUILD_VERSION="${BUILD_VERSION}"
+ENV BUILD_DATE="${BUILD_DATE}"
+ENV VCS_REF="${VCS_REF}"
+ENV DOCKERCMD="${DOCKERCMD}"
 
 # Labels.
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.build-date=$BUILD_DATE
-LABEL org.label-schema.name="Technoboggle/nginx-alpine"
-LABEL org.label-schema.description="Technoboggle lightweight Redis node"
-LABEL org.label-schema.url="http://technoboggle.com/"
-LABEL org.label-schema.vcs-url="https://github.com/Technoboggle/nginx-alpine"
-LABEL org.label-schema.vcs-ref=$VCS_REF
-LABEL org.label-schema.vendor="WSO2"
-LABEL org.label-schema.version=$BUILD_VERSION
+LABEL maintainer=${MAINTAINER_NAME} \
+    version=${VERSION} \
+    description=${DESCRIPTION} \
+    org.label-schema.build-date=${BUILD_DATE} \
+    org.label-schema.name=${NAME} \
+    org.label-schema.description=${DESCRIPTION} \
+    org.label-schema.usage=${USAGE} \
+    org.label-schema.url=${URL} \
+    org.label-schema.vcs-url=${VCS_URL} \
+    org.label-schema.vcs-ref=${VSC_REF} \
+    org.label-schema.vendor=${VENDOR} \
+    org.label-schema.version=${BUILDVERSION} \
+    org.label-schema.schema-version=${SCHEMAVERSION} \
+    org.label-schema.docker.cmd=${DOCKERCMD} \
+    org.label-schema.docker.cmd.devel="" \
+    org.label-schema.docker.cmd.test="" \
+    org.label-schema.docker.cmd.debug="" \
+    org.label-schema.docker.cmd.help="" \
+    org.label-schema.docker.params=""
 
-
-RUN apk --no-cache update
-
-ARG ALPINE_VERSION=3.17.1
-
-# nginx:alpine contains NGINX_VERSION environment variable, like so:
-ARG NGINX_VERSION=1.21.6
-## When last tried (21/07/2022) nginx versions above 1.21.6 (including 1.23.3) would not allow the redis module to compile due to changes in ngx_http_upstream.h and others
-
-ARG NGINX_FIANL_VERSION=1.25.1
-
-# Our NCHAN version
-ARG NCHAN_VERSION=1.3.6
-
-# Our HTTP Redis version
-ARG HTTP_REDIS_VERSION=0.3.9
-
-ARG REDIS2_NGINX=0.15
-
-# Our nginx security headers version
-ARG NGX_SEC_HEADER=0.0.11
-
-# Our nginx security headers version
-ARG PCRE_VERSION=8.45
-
-# Our nginx mod_zip version
-ARG MOD_ZIP_VERSION=1.2.0
-
-# nginx_devel_kit
-ARG NGINX_DEVEL_KIT=0.3.2
-
-# ngx_set_misc - Various set_xxx directives added to nginx's rewrite module
-# (md5/sha1, sql/json quoting, and many more)
-ARG SET_MISC_NGINX_MODULE=0.33
-
-# ngx_srcache - Transparent subrequest-based caching layout for arbitrary nginx locations
-ARG SRCACHE_NGINX=0.33rc1
-
-# User credentials nginx to run as
-ARG USER_ID=82 \
-    GROUP_ID=82 \
-    USER_NAME=www-data \
-    GROUP_NAME=www-data
-
-
-# Download sources
-RUN apk --no-cache upgrade musl && \
+# Create the nginx user and group with the correct UID and GID to match the host
+ADD user_fix.sh /usr/local/bin/user_fix.sh
+RUN chmod +x /usr/local/bin/user_fix.sh && \
+  /usr/local/bin/user_fix.sh && \
+  \
+  # Download sources
+  apk --no-cache update musl && \
   apk add --no-cache linux-pam shadow && \
   mkdir -p /usr/src && \
   cd /usr/src && \
-  wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
+  \
+  wget "http://nginx.org/download/nginx-${BUILDER_NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
   wget "https://github.com/slact/nchan/archive/v${NCHAN_VERSION}.tar.gz" -O nchan.tar.gz && \
   wget "https://people.freebsd.org/~osa/ngx_http_redis-${HTTP_REDIS_VERSION}.tar.gz" -O http_redis.tar.gz && \
   wget "https://github.com/openresty/redis2-nginx-module/archive/refs/tags/v${REDIS2_NGINX}.tar.gz" -O redis2.tar.gz && \
@@ -100,15 +148,13 @@ RUN apk --no-cache upgrade musl && \
   libxslt-dev \
   gd-dev \
   geoip-dev && \
-  apk upgrade --no-cache musl curl libcurl && \
-  (deluser "${USER_NAME}" || true) && \
-  (delgroup "${GROUP_NAME}" || true) && \
-  groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
-  useradd -r -u "$USER_ID" -g "$GROUP_ID" -c "$GROUP_NAME" -d /srv/www -s /sbin/nologin "$USER_NAME" && \
-# Following switch removed as invalid on Alpine -fomit-frame-pointer
+  apk update --no-cache musl curl libcurl && \
+  apk add --no-cache --update \
+  nghttp2=1.51.0-r2 \
+  nghttp2-libs=1.51.0-r2 \
+  libx11=1.8.7-r0 \
+  tiff=4.4.0-r4 && \
   CONFARGS="--prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --http-client-body-temp-path=/var/cache/nginx/client_temp --http-proxy-temp-path=/var/cache/nginx/proxy_temp --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp --http-scgi-temp-path=/var/cache/nginx/scgi_temp --with-perl_modules_path=/usr/lib/perl5/vendor_perl --user=$USER_NAME --group=$GROUP_NAME --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-cc-opt='-Os' --with-ld-opt=-Wl,--as-needed " && \
-  \
-# Reuse same cli arguments as the nginx:alpine image used to build
   cd /usr/src && \
   tar -zxC /usr/src -f nginx.tar.gz && \
   tar -xzvf "nchan.tar.gz" && \
@@ -132,50 +178,43 @@ RUN apk --no-cache upgrade musl && \
   MOD_SET_MISC_NGINX_MODULE_DIR="$(pwd)/set-misc-nginx-module-${SET_MISC_NGINX_MODULE}" && \
   SRCACHE_NGINX_MODULE_DIR="$(pwd)/srcache-nginx-module-${SRCACHE_NGINX}" && \
   \
-  \
-  cd /usr/src/nginx-$NGINX_VERSION && \
+  cd /usr/src/nginx-$BUILDER_NGINX_VERSION && \
   CFLAGS="-fcommon" \
-  ./configure --with-compat $CONFARGS --with-http_gzip_static_module --add-dynamic-module=$NCHANDIR --add-dynamic-module=$MOD_NGINX_DEVEL_KIT_DIR --add-dynamic-module=$MOD_SET_MISC_NGINX_MODULE_DIR  --add-dynamic-module=$SRCACHE_NGINX_MODULE_DIR --add-dynamic-module=$HTTP_REDIS_DIR --add-dynamic-module=$REDIS2_NGINX_DIR --add-dynamic-module=$SEC_HEADERS_DIR --add-dynamic-module=$MOD_ZIP_DIR && \
+  ./configure --with-compat $CONFARGS \
+  --with-http_gzip_static_module \
+  --add-dynamic-module=$NCHANDIR \
+  --add-dynamic-module=$MOD_NGINX_DEVEL_KIT_DIR \
+  --add-dynamic-module=$MOD_SET_MISC_NGINX_MODULE_DIR \
+  --add-dynamic-module=$SRCACHE_NGINX_MODULE_DIR \
+  --add-dynamic-module=$HTTP_REDIS_DIR \
+  --add-dynamic-module=$REDIS2_NGINX_DIR \
+  --add-dynamic-module=$SEC_HEADERS_DIR \
+  --add-dynamic-module=$MOD_ZIP_DIR && \
+  \
+  cd /usr/src/nginx-$BUILDER_NGINX_VERSION && \
   make modules && \
+  \
   mv ./objs/*.so / && \
-  ls -al /
+  ls -al
 
+FROM nginx:${NGINX_VERSION}-alpine${ALPINE_VERSION}
 
-#  make && make install
+ADD user_fix.sh /usr/local/bin/user_fix.sh
 
-FROM nginx:1.25.1-alpine3.17
-ENV USER_ID=82 \
-    GROUP_ID=82 \
-    USER_NAME=www-data \
-    GROUP_NAME=www-data
-
-RUN apk upgrade --no-cache musl curl libcurl&& \
+RUN chmod +x /usr/local/bin/user_fix.sh && \
+    /usr/local/bin/user_fix.sh && \
     apk update --no-cache && \
-    apk add --no-cache bash shadow openssl libjpeg-turbo;
-#    apk add --no-cache openssl && \
-#    wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.tgz -O /usr/local/bin/ngrok.tgz && \
-#    cd /usr/local/bin/ && \
-#    tar -xvzf ngrok.tgz && \
-#    rm -f ngrok.tgz && \
-#    if [ ! -d "/root/.ngrok2" ]; then \
-#      mkdir /root/.ngrok2; \
-#    fi; \
-##    groupadd -r -g "$GROUP_ID" "$GROUP_NAME" && \
-#    useradd -r -u "$USER_ID" -g "$GROUP_ID" -c "$GROUP_NAME" -d /srv/www -s /sbin/nologin "$USER_NAME"
+    apk upgrade --no-cache && \
+    apk upgrade --no-cache musl curl libcurl && \
+    apk add --no-cache --update \
+      openssl \
+      openssl-dev \
+      nghttp2 \
+      nghttp2-libs \
+      libx11 \
+      tiff && \
+    apk add --no-cache bash shadow openssl libjpeg-turbo
 
-
-#COPY /ngrok.yml /root/.ngrok2/
-
-### THIS BLOCK IS FOR DOCUMENTATION ONLY DO NOT ENABLE
-## Extract the dynamic module NCHAN from the builder image   -fcommon
-#COPY --from=builder /ngx_nchan_module.so /usr/local/nginx/modules/ngx_nchan_module.so
-## Extract the dynamic module HTTP_REDIS from the builder image
-#COPY --from=builder /ngx_http_redis_module.so /usr/local/nginx/modules/ngx_http_redis_module.so
-## Extract the dynamic module ngx_security_headers from the builder image
-#COPY --from=builder /ngx_http_security_headers_module.so /usr/local/nginx/modules/ngx_http_security_headers_module.so
-
-
-# Extract the dynamic modules from the builder image above and place in lightweight image for execution
 COPY --from=builder /*.so /usr/local/nginx/modules/
 
 WORKDIR /srv/www
