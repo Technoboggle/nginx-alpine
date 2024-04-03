@@ -208,6 +208,7 @@ RUN chmod +x /usr/local/bin/user_fix.sh && \
     apk upgrade --no-cache musl curl libcurl && \
     apk add --no-cache --update \
       openssl \
+      openssh-keygen \
       openssl-dev \
       nghttp2 \
       nghttp2-libs \
