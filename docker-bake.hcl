@@ -33,6 +33,7 @@ target "app" {
         URL = "${URL}"
         VCS_URL = "${VCS_URL}"
         VENDOR = "${VENDOR}"
+        BUILD_LOCALLY = "${BUILD_LOCALLY}"
         BUILDVERSION = "${BUILD_VERSION}"
         BUILD_DATE="${BUILD_DATE}"
         DOCKERCMD:"${DOCKERCMD}"
